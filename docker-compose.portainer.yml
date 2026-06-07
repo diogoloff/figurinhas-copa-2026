@@ -1,0 +1,51 @@
+services:
+  app:
+    build:
+      context: .
+    container_name: figurinhas_2026_app
+    restart: unless-stopped
+    environment:
+      FLASK_DEBUG: "0"
+      SECRET_KEY: "troque-por-uma-chave-grande-e-aleatoria"
+      DATABASE_URL: "postgresql+psycopg://USUARIO:SENHA@NOME_DO_CONTAINER_POSTGRES:5432/fwc_26"
+      POSTGRES_SCHEMA: "app"
+      APP_BASE_URL: "https://seudominio.com.br"
+      TRUSTED_HOSTS: "seudominio.com.br,www.seudominio.com.br"
+      SESSION_COOKIE_SECURE: "true"
+      PROXY_FIX_X_FOR: "1"
+      PROXY_FIX_X_PROTO: "1"
+      PROXY_FIX_X_HOST: "1"
+      MAX_CONTENT_LENGTH: "1048576"
+      RATELIMIT_STORAGE_URI: "redis://figurinhas_2026_redis:6379/0"
+      RATELIMIT_DEFAULT: "200 per minute; 2000 per hour"
+      MAIL_SERVER: "smtp.gmail.com"
+      MAIL_PORT: "587"
+      MAIL_USE_TLS: "true"
+      MAIL_USE_SSL: "false"
+      MAIL_USERNAME: "seu-email@gmail.com"
+      MAIL_PASSWORD: "sua-senha-de-app-do-gmail"
+      MAIL_DEFAULT_SENDER: "seu-email@gmail.com"
+    ports:
+      - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_started
+    networks:
+      - figurinhas_2026_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: figurinhas_2026_redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - figurinhas_2026_redis_data:/data
+    networks:
+      - figurinhas_2026_net
+
+volumes:
+  figurinhas_2026_redis_data:
+
+networks:
+  figurinhas_2026_net:
+    external: true
