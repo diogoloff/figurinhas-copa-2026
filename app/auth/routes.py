@@ -1,7 +1,7 @@
 from datetime import timezone
 from urllib.parse import urlsplit
 
-from flask import Blueprint, abort, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, flash, jsonify, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
 from app.album_data import build_compact_list_data, build_dashboard_data, build_selection_data, find_selection_by_code
@@ -179,6 +179,27 @@ def toggle_sticker_from_list(sticker_code):
         redirect_args["modo"] = "adquiridas"
     if request.form.get("q"):
         redirect_args["q"] = request.form["q"]
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        collected_codes = {
+            user_sticker.code
+            for user_sticker in UserSticker.query.filter_by(user_id=current_user.id, is_collected=True).all()
+        }
+        mode = "collected" if request.form.get("modo") == "adquiridas" else "pending"
+        compact_list = build_compact_list_data(collected_codes, mode=mode, query=request.form.get("q", "").strip())
+        return jsonify(
+            {
+                "sticker": {
+                    "code": sticker_code,
+                    "collected": sticker.is_collected,
+                },
+                "compactList": {
+                    "totalVisible": compact_list["total_visible"],
+                    "showingCollected": compact_list["showing_collected"],
+                    "emptyTitle": compact_list["empty_title"],
+                },
+            }
+        )
     return redirect(url_for("auth.compact_sticker_list", **redirect_args))
 
 
@@ -215,6 +236,34 @@ def toggle_sticker(selection_sigla, sticker_code):
     redirect_args = {"selection_sigla": selection["sigla"].lower()}
     if request.form.get("pendentes") == "1":
         redirect_args["pendentes"] = "1"
+
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        collected_codes = {
+            user_sticker.code
+            for user_sticker in UserSticker.query.filter_by(user_id=current_user.id, is_collected=True).all()
+        }
+        updated_selection = build_selection_data(
+            selection["sigla"].lower(),
+            collected_codes,
+            pending_only=request.form.get("pendentes") == "1",
+        )
+        return jsonify(
+            {
+                "sticker": {
+                    "code": sticker_code,
+                    "collected": sticker.is_collected,
+                    "state": "Marcada" if sticker.is_collected else "Pendente",
+                },
+                "selection": {
+                    "completed": updated_selection["completed"],
+                    "total": updated_selection["total"],
+                    "percent": updated_selection["percent"],
+                    "pending": updated_selection["pending"],
+                    "pendingOnly": updated_selection["pending_only"],
+                    "visibleStickers": len(updated_selection["stickers"]),
+                },
+            }
+        )
     return redirect(url_for("auth.sticker_selection", **redirect_args))
 
 

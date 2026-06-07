@@ -638,6 +638,11 @@ a:hover {
   transform: translateY(-1px);
 }
 
+.sticker-tile:disabled {
+  cursor: progress;
+  opacity: 0.78;
+}
+
 .sticker-tile.is-collected {
   color: #ffffff;
   border-color: var(--green);
@@ -893,6 +898,11 @@ a:hover {
 .compact-sticker:focus-visible {
   border-color: var(--green);
   outline: 3px solid rgba(0, 156, 59, 0.16);
+}
+
+.compact-sticker:disabled {
+  cursor: progress;
+  opacity: 0.78;
 }
 
 .compact-sticker.is-collected {

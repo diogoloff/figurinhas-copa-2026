@@ -59,3 +59,7 @@
   {% endif %}
 </section>
 {% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/sticker-toggle.js') }}" defer></script>
+{% endblock %}
