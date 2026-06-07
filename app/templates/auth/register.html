@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Cadastro - Controle de Figurinhas{% endblock %}
+
+{% block content %}
+<section class="auth-layout">
+  <div class="auth-copy">
+    <p class="eyebrow">Cadastro</p>
+    <h1>Crie seu acesso</h1>
+    <p>A senha precisa ter no mínimo 8 caracteres, com letras, números e um caractere especial.</p>
+  </div>
+  <form class="auth-card" method="post" novalidate>
+    {{ form.hidden_tag() }}
+    <label>
+      <span>{{ form.email.label.text }}</span>
+      {{ form.email(autocomplete="email", inputmode="email", placeholder="seu@email.com") }}
+      {% for error in form.email.errors %}<small>{{ error }}</small>{% endfor %}
+    </label>
+    <label>
+      <span>{{ form.password.label.text }}</span>
+      {{ form.password(autocomplete="new-password", placeholder="Senha segura") }}
+      {% for error in form.password.errors %}<small>{{ error }}</small>{% endfor %}
+    </label>
+    <label>
+      <span>{{ form.confirm_password.label.text }}</span>
+      {{ form.confirm_password(autocomplete="new-password", placeholder="Repita a senha") }}
+      {% for error in form.confirm_password.errors %}<small>{{ error }}</small>{% endfor %}
+    </label>
+    <div class="privacy-box notice-box">
+      <strong>Aviso sobre disponibilidade</strong>
+      <p>Esta aplicação está disponível publicamente em caráter de testes. Ela foi desenvolvida inicialmente para me ajudar a catalogar minhas figurinhas e foi disponibilizada para quem quiser acompanhar ou utilizar. Como a hospedagem é caseira, não há garantia de acesso contínuo ou disponibilidade permanente. Ao término de 2026, a aplicação será retirada do ar e todos os dados cadastrados serão excluídos.</p>
+    </div>
+    <div class="privacy-box">
+      <strong>Aviso LGPD</strong>
+      <p>Seu email será usado somente como identificador de usuário e para recuperação de senha. Ele não será vendido, compartilhado para fins comerciais, nem utilizado para envio de marketing.</p>
+    </div>
+    <label class="check-row">
+      {{ form.privacy_accept() }}
+      <span>{{ form.privacy_accept.label.text }}</span>
+    </label>
+    {% for error in form.privacy_accept.errors %}<small>{{ error }}</small>{% endfor %}
+    {{ form.submit(class="button button-primary full-width") }}
+    <div class="form-links">
+      <a href="{{ url_for('auth.login') }}">Já tenho cadastro</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

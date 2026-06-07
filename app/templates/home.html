@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-copy">
+    <p class="eyebrow">Copa do Mundo 2026</p>
+    <h1>Controle de Figurinhas Copa do Mundo 2026</h1>
+    <p>Organize seu álbum de forma simples e sem complicação.</p>
+    <div class="hero-actions">
+      <a class="button button-primary" href="{{ url_for('auth.login') }}">Entrar</a>
+      <a class="button button-secondary" href="{{ url_for('auth.register') }}">Criar cadastro</a>
+    </div>
+  </div>
+  <div class="hero-panel" aria-hidden="true">
+    <div class="sticker-grid">
+      <span>FWC</span><span>26</span><span>BR</span><span>HEXA</span>
+    </div>
+  </div>
+</section>
+{% endblock %}
