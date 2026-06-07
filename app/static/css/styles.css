@@ -39,6 +39,8 @@ a:hover {
 }
 
 .page-shell {
+  display: flex;
+  flex-direction: column;
   width: min(1120px, calc(100% - 32px));
   min-height: 100vh;
   margin: 0 auto;
@@ -102,7 +104,39 @@ a:hover {
 }
 
 .main-content {
+  flex: 1;
   padding-top: 24px;
+}
+
+.site-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 14px;
+  margin-top: auto;
+  padding: 18px 0 4px;
+  color: rgba(97, 112, 132, 0.9);
+  font-size: 0.88rem;
+  font-weight: 750;
+}
+
+.site-footer nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.site-footer a {
+  color: var(--blue);
+  font-size: 0.88rem;
+  font-weight: 850;
+  opacity: 0.78;
+}
+
+.site-footer a:hover,
+.site-footer a:focus-visible {
+  opacity: 1;
 }
 
 .hero,
@@ -114,7 +148,7 @@ a:hover {
 }
 
 .hero {
-  min-height: calc(100vh - 170px);
+  min-height: min(620px, calc(100vh - 240px));
 }
 
 .hero h1,
@@ -1027,6 +1061,11 @@ a:hover {
   .topnav {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .site-footer {
+    margin-top: 28px;
+    padding-top: 14px;
   }
 
   .auth-card,
