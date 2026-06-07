@@ -9,7 +9,7 @@ from app.extensions import db, limiter
 from app.models import PasswordResetToken, User, UserSticker, as_utc, utcnow
 
 from .email import send_password_reset_email
-from .forms import ForgotPasswordForm, LoginForm, RegisterForm, ResetPasswordForm
+from .forms import DeleteAccountForm, ForgotPasswordForm, LoginForm, RegisterForm, ResetPasswordForm
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -145,6 +145,32 @@ def dashboard():
     }
     album = build_dashboard_data(collected_codes)
     return render_template("dashboard.html", album=album)
+
+
+@auth_bp.route("/conta/excluir", methods=["GET", "POST"])
+@login_required
+@limiter.limit("5 per minute; 20 per hour")
+def delete_account():
+    form = DeleteAccountForm()
+    if form.validate_on_submit():
+        logged_email = normalize_email(current_user.email)
+        informed_email = normalize_email(form.email.data)
+        email_matches = informed_email == logged_email
+        password_matches = current_user.check_password(form.password.data)
+        confirmation_matches = form.confirmation.data.strip() == "EXCLUIR CONTA"
+
+        if email_matches and password_matches and confirmation_matches:
+            user = current_user._get_current_object()
+            db.session.delete(user)
+            logout_user()
+            session.clear()
+            db.session.commit()
+            flash("Conta excluída com sucesso. Todos os dados vinculados foram removidos.", "success")
+            return redirect(url_for("auth.home"))
+
+        flash("Confirme o email da conta logada, a senha e a frase EXCLUIR CONTA exatamente como solicitado.", "danger")
+
+    return render_template("auth/delete_account.html", form=form)
 
 
 @auth_bp.get("/figurinhas/resumo")

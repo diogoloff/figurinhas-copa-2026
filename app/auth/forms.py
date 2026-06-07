@@ -1,7 +1,7 @@
 import re
 
 from flask_wtf import FlaskForm
-from wtforms import BooleanField, EmailField, PasswordField, SubmitField
+from wtforms import BooleanField, EmailField, PasswordField, StringField, SubmitField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, ValidationError
 
 
@@ -43,3 +43,10 @@ class ResetPasswordForm(FlaskForm):
         validators=[DataRequired(), EqualTo("password", message="As senhas precisam ser iguais.")],
     )
     submit = SubmitField("Redefinir senha")
+
+
+class DeleteAccountForm(FlaskForm):
+    email = EmailField("Confirme seu email", validators=[DataRequired(), Email(), Length(max=255)])
+    password = PasswordField("Confirme sua senha", validators=[DataRequired()])
+    confirmation = StringField("Digite EXCLUIR CONTA", validators=[DataRequired(), Length(max=32)])
+    submit = SubmitField("Excluir minha conta")

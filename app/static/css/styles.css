@@ -192,6 +192,27 @@ a:hover {
   align-items: center;
 }
 
+.privacy-note {
+  max-width: 680px;
+  border-left: 4px solid var(--green);
+  border-radius: 8px;
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.privacy-note strong {
+  color: var(--ink);
+  font-weight: 900;
+}
+
+.privacy-note p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
 .button {
   display: inline-flex;
   min-height: 48px;
@@ -214,6 +235,19 @@ a:hover {
 .button-secondary {
   color: var(--blue);
   background: var(--yellow);
+}
+
+.button-danger,
+.button-danger-outline {
+  color: #ffffff;
+  background: var(--danger);
+}
+
+.button-danger-outline {
+  border: 1px solid rgba(180, 35, 24, 0.42);
+  color: var(--danger);
+  background: #fff4f2;
+  box-shadow: none;
 }
 
 .full-width {
@@ -934,7 +968,8 @@ a:hover {
 }
 
 .auth-card input[type="email"],
-.auth-card input[type="password"] {
+.auth-card input[type="password"],
+.auth-card input[type="text"] {
   width: 100%;
   min-height: 48px;
   border: 1px solid var(--border);
@@ -982,6 +1017,15 @@ a:hover {
   color: var(--muted);
   font-size: 0.95rem;
   line-height: 1.5;
+}
+
+.danger-card {
+  border-color: rgba(180, 35, 24, 0.28);
+}
+
+.danger-box {
+  border-left-color: var(--danger);
+  background: #fff4f2;
 }
 
 .form-links {
