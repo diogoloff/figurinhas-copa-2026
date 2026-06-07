@@ -1,4 +1,39 @@
 services:
+  nginx:
+    image: nginxproxy/nginx-proxy:1.6
+    container_name: figurinhas_2026_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - figurinhas_2026_certs:/etc/nginx/certs:ro
+      - figurinhas_2026_html:/usr/share/nginx/html
+      - figurinhas_2026_dhparam:/etc/nginx/dhparam
+      - ./deploy/nginx/vhost.d:/etc/nginx/vhost.d:ro
+      - ./deploy/nginx/conf.d/limits.conf:/etc/nginx/conf.d/limits.conf:ro
+    networks:
+      - figurinhas_2026_net
+
+  acme:
+    image: nginxproxy/acme-companion:2.4
+    container_name: figurinhas_2026_acme
+    restart: unless-stopped
+    environment:
+      DEFAULT_EMAIL: "seu-email@gmail.com"
+      NGINX_PROXY_CONTAINER: "figurinhas_2026_nginx"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - figurinhas_2026_certs:/etc/nginx/certs
+      - figurinhas_2026_html:/usr/share/nginx/html
+      - figurinhas_2026_dhparam:/etc/nginx/dhparam
+      - ./deploy/nginx/vhost.d:/etc/nginx/vhost.d
+    depends_on:
+      - nginx
+    networks:
+      - figurinhas_2026_net
+
   app:
     build:
       context: .
@@ -9,8 +44,8 @@ services:
       SECRET_KEY: "troque-por-uma-chave-grande-e-aleatoria"
       DATABASE_URL: "postgresql+psycopg://USUARIO:SENHA@NOME_DO_CONTAINER_POSTGRES:5432/fwc_26"
       POSTGRES_SCHEMA: "app"
-      APP_BASE_URL: "https://seudominio.com.br"
-      TRUSTED_HOSTS: "seudominio.com.br,www.seudominio.com.br"
+      APP_BASE_URL: "https://faltamquais.cloud"
+      TRUSTED_HOSTS: "faltamquais.cloud,www.faltamquais.cloud"
       SESSION_COOKIE_SECURE: "true"
       PROXY_FIX_X_FOR: "1"
       PROXY_FIX_X_PROTO: "1"
@@ -25,9 +60,13 @@ services:
       MAIL_USERNAME: "seu-email@gmail.com"
       MAIL_PASSWORD: "sua-senha-de-app-do-gmail"
       MAIL_DEFAULT_SENDER: "seu-email@gmail.com"
-    ports:
-      - "8000:8000"
+      VIRTUAL_HOST: "faltamquais.cloud,www.faltamquais.cloud"
+      VIRTUAL_PORT: "8000"
+      LETSENCRYPT_HOST: "faltamquais.cloud,www.faltamquais.cloud"
+      LETSENCRYPT_EMAIL: "seu-email@gmail.com"
     depends_on:
+      nginx:
+        condition: service_started
       redis:
         condition: service_started
     networks:
@@ -44,6 +83,9 @@ services:
       - figurinhas_2026_net
 
 volumes:
+  figurinhas_2026_certs:
+  figurinhas_2026_html:
+  figurinhas_2026_dhparam:
   figurinhas_2026_redis_data:
 
 networks:

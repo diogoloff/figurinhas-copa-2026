@@ -144,3 +144,39 @@ server {
 ```
 
 Se usar Cloudflare ou outro CDN, ajuste Nginx para confiar apenas nos IPs do CDN antes de usar o IP real do cliente. Nao aceite `X-Forwarded-For` diretamente de clientes externos.
+
+## Deploy no Portainer
+
+O arquivo `docker-compose.portainer.yml` sobe a aplicacao com:
+
+- Nginx reverso em `80` e `443`.
+- Certificado HTTPS automatico via Let's Encrypt.
+- Redis para rate limit compartilhado.
+- App Flask sem porta publica, acessivel internamente por `figurinhas_2026_app:8000`.
+- Rede Docker externa `figurinhas_2026_net`.
+
+Antes de subir a stack:
+
+1. Aponte o DNS `A` de `faltamquais.cloud` para o IP da VPS.
+2. Se for usar `www`, aponte `www.faltamquais.cloud` tambem para a VPS.
+3. Garanta que as portas `80` e `443` estejam liberadas no firewall.
+4. Confirme que nenhum outro container esta usando `80` ou `443` nessa VPS.
+5. Ajuste no compose: `SECRET_KEY`, `DATABASE_URL`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_DEFAULT_SENDER`, `DEFAULT_EMAIL` e `LETSENCRYPT_EMAIL`.
+
+No Portainer:
+
+1. Abra `Stacks > Add stack`.
+2. Use Git Repository apontando para este projeto, ou envie os arquivos da pasta do projeto.
+3. Use `docker-compose.portainer.yml`.
+4. Faça o deploy.
+5. Depois que o container `figurinhas_2026_app` estiver de pe, execute:
+
+```bash
+flask --app run.py init-db
+```
+
+O usuario acessa sem porta:
+
+```text
+https://faltamquais.cloud
+```
