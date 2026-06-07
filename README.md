@@ -1,6 +1,20 @@
 # Controle de Figurinhas Copa do Mundo 2026
 
-Base Flask para autenticacao com email e senha, cadastro, recuperacao de senha por email e bloqueio por excesso de tentativas.
+Aplicacao web para colecionadores acompanharem o album de figurinhas da Copa do Mundo 2026. Cada usuario cria sua conta, marca as figurinhas que ja possui, acompanha o progresso geral do album e consulta rapidamente quais figurinhas ainda faltam por selecao ou em lista resumida.
+
+A aplicacao foi pensada para uso simples em celular e desktop, com cadastro individual, painel de progresso, filtros de pendentes/adquiridas e persistencia em PostgreSQL.
+
+## Funcionalidades
+
+- Cadastro e login de usuarios.
+- Recuperacao de senha por email.
+- Painel com progresso geral do album.
+- Progresso por grupos e selecoes.
+- Marcacao de figurinhas adquiridas.
+- Lista resumida de figurinhas pendentes ou adquiridas.
+- Busca por codigo, selecao ou nome na lista resumida.
+- Sessao individual por usuario, mantendo cada colecao separada.
+- Rodape com creditos e redes sociais do autor.
 
 ## Stack
 
@@ -168,7 +182,7 @@ No Portainer:
 1. Abra `Stacks > Add stack`.
 2. Use Git Repository apontando para este projeto, ou envie os arquivos da pasta do projeto.
 3. Use `docker-compose.portainer.yml`.
-4. Faça o deploy.
+4. Faca o deploy.
 5. Depois que o container `figurinhas_2026_app` estiver de pe, execute:
 
 ```bash
