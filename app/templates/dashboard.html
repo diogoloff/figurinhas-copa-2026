@@ -8,7 +8,7 @@
     <p class="eyebrow">Painel do álbum</p>
     <h1>Controle de Figurinhas Copa do Mundo 2026</h1>
     <div class="dashboard-actions">
-      <a class="button button-primary" href="{{ url_for('auth.compact_sticker_list') }}">Ver lista resumida</a>
+      <a class="button button-primary" href="{{ url_for('auth.compact_sticker_list') }}" data-dashboard-leave>Ver lista resumida</a>
     </div>
   </div>
   <div class="album-total" aria-label="Progresso total do álbum">
@@ -35,7 +35,7 @@
       </header>
       <div class="team-list">
         {% for team in group.teams %}
-          <a class="team-row team-link" href="{{ url_for('auth.sticker_selection', selection_sigla=team.href) }}">
+          <a class="team-row team-link" href="{{ url_for('auth.sticker_selection', selection_sigla=team.href) }}" data-dashboard-leave>
             <div class="team-code">{{ team.sigla }}</div>
             <div class="team-main">
               <div class="team-title">
@@ -52,4 +52,8 @@
     </article>
   {% endfor %}
 </section>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ url_for('static', filename='js/dashboard-navigation.js') }}" defer></script>
 {% endblock %}
