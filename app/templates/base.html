@@ -14,6 +14,7 @@
         <span class="brand-mark">26</span>
         <span>Figurinhas Copa 2026</span>
       </a>
+      {% block topnav %}
       <nav class="topnav" aria-label="Navegação principal">
         {% if current_user.is_authenticated %}
           <span class="user-email">{{ current_user.email }}</span>
@@ -26,6 +27,7 @@
           <a href="{{ url_for('auth.register') }}">Cadastrar</a>
         {% endif %}
       </nav>
+      {% endblock %}
     </header>
 
     <main class="main-content">

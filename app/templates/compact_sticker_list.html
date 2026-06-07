@@ -2,6 +2,8 @@
 
 {% block title %}Lista Resumida - Controle de Figurinhas{% endblock %}
 
+{% block topnav %}{% endblock %}
+
 {% block content %}
 <section class="compact-page">
   <header class="compact-hero">
@@ -13,6 +15,10 @@
     <div class="compact-count">
       <span>{{ compact_list.total_visible }}</span>
       <strong>{{ "adquiridas" if compact_list.showing_collected else "pendentes" }}</strong>
+      <div class="compact-mode compact-mode-mobile" aria-label="Modo da lista">
+        <a class="{% if not compact_list.showing_collected %}is-active{% endif %}" href="{{ url_for('auth.compact_sticker_list', q=compact_list.query or None) }}">Pendentes</a>
+        <a class="{% if compact_list.showing_collected %}is-active{% endif %}" href="{{ url_for('auth.compact_sticker_list', modo='adquiridas', q=compact_list.query or None) }}">Adquiridas</a>
+      </div>
     </div>
   </header>
 
@@ -24,10 +30,13 @@
       <label for="sticker-search">Buscar figurinha</label>
       <div>
         <input id="sticker-search" name="q" value="{{ compact_list.query }}" placeholder="MEX 10, mex10 ou MEX-10">
-        <button class="button button-primary" type="submit">Buscar</button>
+        <button class="button button-primary compact-search-button" type="submit">
+          <span class="compact-search-label">Buscar</span>
+          <span class="compact-search-icon" aria-hidden="true"></span>
+        </button>
       </div>
     </form>
-    <div class="compact-mode" aria-label="Modo da lista">
+    <div class="compact-mode compact-mode-desktop" aria-label="Modo da lista">
       <a class="{% if not compact_list.showing_collected %}is-active{% endif %}" href="{{ url_for('auth.compact_sticker_list', q=compact_list.query or None) }}">Pendentes</a>
       <a class="{% if compact_list.showing_collected %}is-active{% endif %}" href="{{ url_for('auth.compact_sticker_list', modo='adquiridas', q=compact_list.query or None) }}">Adquiridas</a>
     </div>
