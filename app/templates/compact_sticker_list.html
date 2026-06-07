@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Lista Resumida - Controle de Figurinhas{% endblock %}
+
+{% block content %}
+<section class="compact-page">
+  <header class="compact-hero">
+    <div>
+      <a class="back-link compact-back" href="{{ url_for('auth.dashboard') }}">Voltar ao painel</a>
+      <p class="eyebrow">Lista resumida</p>
+      <h1>{{ "Figurinhas adquiridas" if compact_list.showing_collected else "Figurinhas pendentes" }}</h1>
+    </div>
+    <div class="compact-count">
+      <span>{{ compact_list.total_visible }}</span>
+      <strong>{{ "adquiridas" if compact_list.showing_collected else "pendentes" }}</strong>
+    </div>
+  </header>
+
+  <section class="compact-controls" aria-label="Filtros da lista resumida">
+    <form class="compact-search" method="get" action="{{ url_for('auth.compact_sticker_list') }}">
+      {% if compact_list.showing_collected %}
+        <input type="hidden" name="modo" value="adquiridas">
+      {% endif %}
+      <label for="sticker-search">Buscar figurinha</label>
+      <div>
+        <input id="sticker-search" name="q" value="{{ compact_list.query }}" placeholder="MEX 10, mex10 ou MEX-10">
+        <button class="button button-primary" type="submit">Buscar</button>
+      </div>
+    </form>
+    <div class="compact-mode" aria-label="Modo da lista">
+      <a class="{% if not compact_list.showing_collected %}is-active{% endif %}" href="{{ url_for('auth.compact_sticker_list', q=compact_list.query or None) }}">Pendentes</a>
+      <a class="{% if compact_list.showing_collected %}is-active{% endif %}" href="{{ url_for('auth.compact_sticker_list', modo='adquiridas', q=compact_list.query or None) }}">Adquiridas</a>
+    </div>
+  </section>
+
+  {% if compact_list.query %}
+    <div class="compact-query">
+      <span>Busca por <strong>{{ compact_list.query }}</strong></span>
+      <a href="{{ url_for('auth.compact_sticker_list', modo='adquiridas' if compact_list.showing_collected else None) }}">Limpar</a>
+    </div>
+  {% endif %}
+
+  {% if compact_list.sections %}
+    <section class="compact-list" aria-label="Lista compacta de figurinhas">
+      {% for section in compact_list.sections %}
+        <article class="compact-section">
+          <header>
+            <a href="{{ url_for('auth.sticker_selection', selection_sigla=section.href) }}">{{ section.sigla }} - {{ section.nome }}</a>
+            <span>{{ section.stickers|length }}</span>
+          </header>
+          <div class="compact-stickers">
+            {% for sticker in section.stickers %}
+              <form method="post" action="{{ url_for('auth.toggle_sticker_from_list', sticker_code=sticker.code) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                {% if compact_list.showing_collected %}
+                  <input type="hidden" name="modo" value="adquiridas">
+                {% endif %}
+                {% if compact_list.query %}
+                  <input type="hidden" name="q" value="{{ compact_list.query }}">
+                {% endif %}
+                <button class="compact-sticker{% if sticker.collected %} is-collected{% endif %}" type="submit" aria-label="{{ 'Desmarcar' if sticker.collected else 'Marcar' }} {{ sticker.code }}">
+                  {{ sticker.number }}
+                </button>
+              </form>
+            {% endfor %}
+          </div>
+        </article>
+      {% endfor %}
+    </section>
+  {% else %}
+    <section class="empty-state">
+      <h2>{{ compact_list.empty_title }}</h2>
+      <p>Revise a busca ou alterne entre pendentes e adquiridas.</p>
+    </section>
+  {% endif %}
+</section>
+{% endblock %}

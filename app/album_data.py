@@ -158,8 +158,37 @@ def sticker_number(code, selection_sigla):
     return code
 
 
+def normalize_sticker_query(value):
+    return "".join(char for char in (value or "").upper() if char.isalnum())
+
+
+def sticker_matches_query(code, normalized_query):
+    if not normalized_query:
+        return True
+    normalized_code = normalize_sticker_query(code)
+    if any(char.isdigit() for char in normalized_query):
+        return normalized_code == normalized_query
+    return normalized_code.startswith(normalized_query)
+
+
 def iter_groups():
     return TEAM_GROUPS + EXTRA_GROUPS
+
+
+def iter_team_selections():
+    selections = []
+    for group in TEAM_GROUPS:
+        for selection in group["selecoes"]:
+            selections.append((group, selection))
+    return sorted(selections, key=lambda item: item[1]["sigla"])
+
+
+def iter_extra_selections():
+    selections = []
+    for group in EXTRA_GROUPS:
+        for selection in group["selecoes"]:
+            selections.append((group, selection))
+    return selections
 
 
 def find_selection(selection_sigla):
@@ -167,6 +196,14 @@ def find_selection(selection_sigla):
     for group in iter_groups():
         for selection in group["selecoes"]:
             if selection["sigla"] == normalized_sigla:
+                return group, selection
+    return None, None
+
+
+def find_selection_by_code(sticker_code):
+    for group in iter_groups():
+        for selection in group["selecoes"]:
+            if sticker_code in codes_for_selection(selection):
                 return group, selection
     return None, None
 
@@ -266,4 +303,49 @@ def build_selection_data(selection_sigla, collected_codes, pending_only=False):
         "pending": total - completed,
         "pending_only": pending_only,
         "stickers": stickers,
+    }
+
+
+def build_compact_list_data(collected_codes, mode="pending", query=""):
+    showing_collected = mode == "collected"
+    normalized_query = normalize_sticker_query(query)
+    sections = []
+    total_visible = 0
+
+    for group, selection in iter_team_selections() + iter_extra_selections():
+        stickers = []
+        for code in codes_for_selection(selection):
+            collected = code in collected_codes
+            if showing_collected != collected:
+                continue
+            if not sticker_matches_query(code, normalized_query):
+                continue
+            stickers.append(
+                {
+                    "code": code,
+                    "number": sticker_number(code, selection["sigla"]),
+                    "collected": collected,
+                }
+            )
+
+        if stickers:
+            total_visible += len(stickers)
+            sections.append(
+                {
+                    "grupo": group["grupo"],
+                    "cor": group["cor"],
+                    "sigla": selection["sigla"],
+                    "nome": selection["nome"],
+                    "href": selection["sigla"].lower(),
+                    "stickers": stickers,
+                }
+            )
+
+    return {
+        "sections": sections,
+        "mode": "collected" if showing_collected else "pending",
+        "showing_collected": showing_collected,
+        "query": query,
+        "total_visible": total_visible,
+        "empty_title": "Nenhuma figurinha encontrada.",
     }

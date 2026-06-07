@@ -7,6 +7,9 @@
   <div>
     <p class="eyebrow">Painel do álbum</p>
     <h1>Controle de Figurinhas Copa do Mundo 2026</h1>
+    <div class="dashboard-actions">
+      <a class="button button-primary" href="{{ url_for('auth.compact_sticker_list') }}">Ver lista resumida</a>
+    </div>
   </div>
   <div class="album-total" aria-label="Progresso total do álbum">
     <span class="total-number">{{ album.completed }}/{{ album.total }}</span>

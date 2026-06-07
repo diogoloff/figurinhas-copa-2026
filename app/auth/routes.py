@@ -4,7 +4,7 @@ from urllib.parse import urlsplit
 from flask import Blueprint, abort, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
-from app.album_data import build_dashboard_data, build_selection_data
+from app.album_data import build_compact_list_data, build_dashboard_data, build_selection_data, find_selection_by_code
 from app.extensions import db, limiter
 from app.models import PasswordResetToken, User, UserSticker, as_utc, utcnow
 
@@ -145,6 +145,41 @@ def dashboard():
     }
     album = build_dashboard_data(collected_codes)
     return render_template("dashboard.html", album=album)
+
+
+@auth_bp.get("/figurinhas/resumo")
+@login_required
+def compact_sticker_list():
+    collected_codes = {
+        sticker.code
+        for sticker in UserSticker.query.filter_by(user_id=current_user.id, is_collected=True).all()
+    }
+    mode = "collected" if request.args.get("modo") == "adquiridas" else "pending"
+    compact_list = build_compact_list_data(collected_codes, mode=mode, query=request.args.get("q", "").strip())
+    return render_template("compact_sticker_list.html", compact_list=compact_list)
+
+
+@auth_bp.post("/figurinhas/resumo/<sticker_code>/alternar")
+@login_required
+def toggle_sticker_from_list(sticker_code):
+    group, selection = find_selection_by_code(sticker_code)
+    if not selection:
+        abort(404)
+
+    sticker = UserSticker.query.filter_by(user_id=current_user.id, code=sticker_code).first()
+    if sticker:
+        sticker.is_collected = not sticker.is_collected
+    else:
+        sticker = UserSticker(user_id=current_user.id, code=sticker_code, is_collected=True)
+        db.session.add(sticker)
+    db.session.commit()
+
+    redirect_args = {}
+    if request.form.get("modo") == "adquiridas":
+        redirect_args["modo"] = "adquiridas"
+    if request.form.get("q"):
+        redirect_args["q"] = request.form["q"]
+    return redirect(url_for("auth.compact_sticker_list", **redirect_args))
 
 
 @auth_bp.get("/figurinhas/<selection_sigla>")
