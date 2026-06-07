@@ -5,7 +5,8 @@ from app.extensions import mail
 
 
 def send_password_reset_email(user, token):
-    reset_url = url_for("auth.reset_password", token=token, _external=True)
+    base_url = current_app.config["APP_BASE_URL"].rstrip("/")
+    reset_url = f"{base_url}{url_for('auth.reset_password', token=token)}"
     msg = Message(
         subject="Redefinição de senha - Controle de Figurinhas Copa 2026",
         recipients=[user.email],

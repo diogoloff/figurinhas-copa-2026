@@ -87,7 +87,60 @@ Use uma senha de app do Google em `MAIL_PASSWORD`. A senha normal da conta Gmail
 - CSRF em formularios.
 - Rate limit por IP nas rotas de login, cadastro e recuperacao.
 - Storage de rate limit configuravel por `RATELIMIT_STORAGE_URI`; em producao, use Redis ou outro backend persistente suportado pelo Flask-Limiter.
+- Rate limit global configuravel por `RATELIMIT_DEFAULT`.
 - Bloqueio de conta por 24h apos 5 falhas de login.
 - Token de recuperacao aleatorio, armazenado apenas como SHA-256 e valido por 1h.
 - Mensagem generica na recuperacao para nao revelar emails cadastrados.
 - Cookies de sessao `HttpOnly` e `SameSite=Lax`.
+- Headers de seguranca: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, CSP e HSTS quando `SESSION_COOKIE_SECURE=true`.
+- `TRUSTED_HOSTS` para mitigar Host header injection.
+- `ProxyFix` configuravel para preservar IP/protocolo reais atras de proxy reverso.
+- `MAX_CONTENT_LENGTH` para rejeitar corpos de requisicao grandes demais.
+
+## Checklist para VPS
+
+- Gere uma `SECRET_KEY` longa e aleatoria; nunca use a chave de exemplo.
+- Use HTTPS e configure `SESSION_COOKIE_SECURE=true`.
+- Configure `APP_BASE_URL` com o dominio HTTPS real, pois links de reset de senha usam esse valor.
+- Configure `TRUSTED_HOSTS` com o dominio e aliases reais.
+- Rode a app com Gunicorn atras de Nginx, Caddy ou Traefik; nao exponha Gunicorn direto na internet.
+- Use `RATELIMIT_STORAGE_URI=redis://127.0.0.1:6379/0` ou outro backend compartilhado. `memory://` so serve para desenvolvimento ou instancia unica sem multiplos workers.
+- Restrinja portas no firewall: publique apenas 80/443; PostgreSQL e Redis devem ficar locais ou em rede privada.
+- Desative debug: `FLASK_DEBUG=0`.
+- Rode o processo com usuario sem privilegio de root.
+
+## Mitigacao de DDoS
+
+O Flask-Limiter ajuda contra abuso de formulario e automacao simples, mas DDoS volumetrico precisa ser filtrado antes da aplicacao. Use um provedor com protecao de rede, CDN/WAF quando possivel e limite requisicoes no proxy reverso.
+
+Exemplo minimo para Nginx:
+
+```nginx
+limit_req_zone $binary_remote_addr zone=app_per_ip:10m rate=10r/s;
+limit_conn_zone $binary_remote_addr zone=conn_per_ip:10m;
+
+server {
+    listen 443 ssl http2;
+    server_name seudominio.com.br www.seudominio.com.br;
+
+    client_max_body_size 1m;
+    limit_conn conn_per_ip 20;
+
+    location /static/ {
+        alias /caminho/para/figurinhas-copa-2026/app/static/;
+        expires 7d;
+        add_header Cache-Control "public";
+    }
+
+    location / {
+        limit_req zone=app_per_ip burst=30 nodelay;
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+Se usar Cloudflare ou outro CDN, ajuste Nginx para confiar apenas nos IPs do CDN antes de usar o IP real do cliente. Nao aceite `X-Forwarded-For` diretamente de clientes externos.
