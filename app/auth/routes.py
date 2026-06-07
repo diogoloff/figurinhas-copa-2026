@@ -1,11 +1,12 @@
 from datetime import timezone
 from urllib.parse import urlsplit
 
-from flask import Blueprint, flash, redirect, render_template, request, session, url_for
+from flask import Blueprint, abort, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 
+from app.album_data import build_dashboard_data, build_selection_data
 from app.extensions import db, limiter
-from app.models import PasswordResetToken, User, as_utc, utcnow
+from app.models import PasswordResetToken, User, UserSticker, as_utc, utcnow
 
 from .email import send_password_reset_email
 from .forms import ForgotPasswordForm, LoginForm, RegisterForm, ResetPasswordForm
@@ -138,7 +139,48 @@ def reset_password(token):
 @auth_bp.get("/painel")
 @login_required
 def dashboard():
-    return render_template("dashboard.html")
+    collected_codes = {
+        sticker.code
+        for sticker in UserSticker.query.filter_by(user_id=current_user.id, is_collected=True).all()
+    }
+    album = build_dashboard_data(collected_codes)
+    return render_template("dashboard.html", album=album)
+
+
+@auth_bp.get("/figurinhas/<selection_sigla>")
+@login_required
+def sticker_selection(selection_sigla):
+    collected_codes = {
+        sticker.code
+        for sticker in UserSticker.query.filter_by(user_id=current_user.id, is_collected=True).all()
+    }
+    pending_only = request.args.get("pendentes") == "1"
+    selection = build_selection_data(selection_sigla, collected_codes, pending_only=pending_only)
+    if not selection:
+        abort(404)
+    return render_template("sticker_selection.html", selection=selection)
+
+
+@auth_bp.post("/figurinhas/<selection_sigla>/<sticker_code>/alternar")
+@login_required
+def toggle_sticker(selection_sigla, sticker_code):
+    selection = build_selection_data(selection_sigla, set())
+    selection_codes = {sticker["code"] for sticker in selection["stickers"]} if selection else set()
+    if not selection or sticker_code not in selection_codes:
+        abort(404)
+
+    sticker = UserSticker.query.filter_by(user_id=current_user.id, code=sticker_code).first()
+    if sticker:
+        sticker.is_collected = not sticker.is_collected
+    else:
+        sticker = UserSticker(user_id=current_user.id, code=sticker_code, is_collected=True)
+        db.session.add(sticker)
+    db.session.commit()
+
+    redirect_args = {"selection_sigla": selection["sigla"].lower()}
+    if request.form.get("pendentes") == "1":
+        redirect_args["pendentes"] = "1"
+    return redirect(url_for("auth.sticker_selection", **redirect_args))
 
 
 @auth_bp.post("/logout")

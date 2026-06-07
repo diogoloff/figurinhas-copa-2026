@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}{{ selection.sigla }} - {{ selection.nome }}{% endblock %}
+
+{% block content %}
+<section class="sticker-page">
+  <div class="sticker-hero" data-color="{{ selection.cor }}">
+    <div>
+      <a class="back-link" href="{{ url_for('auth.dashboard') }}">Voltar ao painel</a>
+      <p class="eyebrow">Grupo {{ selection.grupo }}</p>
+      <h1>{{ selection.sigla }} - {{ selection.nome }}</h1>
+    </div>
+    <div class="album-total sticker-total" aria-label="Progresso de {{ selection.nome }}">
+      <span class="total-number">{{ selection.completed }}/{{ selection.total }}</span>
+      <span class="total-label">{{ selection.percent }}% completo</span>
+      <div class="progress-track">
+        <span style="width: {{ selection.percent }}%"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sticker-toolbar">
+    <div>
+      <strong>{{ selection.pending }} pendentes</strong>
+      <span>{{ selection.total }} figurinhas no grupo</span>
+    </div>
+    <a
+      class="pending-toggle{% if selection.pending_only %} is-active{% endif %}"
+      href="{% if selection.pending_only %}{{ url_for('auth.sticker_selection', selection_sigla=selection.sigla.lower()) }}{% else %}{{ url_for('auth.sticker_selection', selection_sigla=selection.sigla.lower(), pendentes='1') }}{% endif %}"
+      role="switch"
+      aria-checked="{{ 'true' if selection.pending_only else 'false' }}"
+    >
+      <span></span>
+      Somente pendentes
+    </a>
+  </div>
+
+  {% if selection.stickers %}
+    <section class="sticker-mark-grid" aria-label="Figurinhas de {{ selection.nome }}">
+      {% for sticker in selection.stickers %}
+        <form method="post" action="{{ url_for('auth.toggle_sticker', selection_sigla=selection.sigla.lower(), sticker_code=sticker.code) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          {% if selection.pending_only %}
+            <input type="hidden" name="pendentes" value="1">
+          {% endif %}
+          <button class="sticker-tile{% if sticker.collected %} is-collected{% endif %}" type="submit" aria-pressed="{{ 'true' if sticker.collected else 'false' }}">
+            <span class="sticker-code">{{ sticker.code }}</span>
+            <span class="sticker-number">{{ sticker.number }}</span>
+            <span class="sticker-state">{{ "Marcada" if sticker.collected else "Pendente" }}</span>
+          </button>
+        </form>
+      {% endfor %}
+    </section>
+  {% else %}
+    <section class="empty-state">
+      <h2>Tudo marcado por aqui.</h2>
+      <p>Desligue o filtro para ver todas as figurinhas desta seleção.</p>
+    </section>
+  {% endif %}
+</section>
+{% endblock %}

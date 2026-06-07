@@ -3,9 +3,50 @@
 {% block title %}Painel - Controle de Figurinhas{% endblock %}
 
 {% block content %}
-<section class="content-panel">
-  <p class="eyebrow">Painel inicial</p>
-  <h1>Controle de Figurinhas Copa do Mundo 2026</h1>
-  <p>A autenticação está pronta. As próximas funcionalidades do álbum podem entrar aqui.</p>
+<section class="dashboard-hero">
+  <div>
+    <p class="eyebrow">Painel do álbum</p>
+    <h1>Controle de Figurinhas Copa do Mundo 2026</h1>
+  </div>
+  <div class="album-total" aria-label="Progresso total do álbum">
+    <span class="total-number">{{ album.completed }}/{{ album.total }}</span>
+    <span class="total-label">{{ album.percent }}% completo</span>
+    <div class="progress-track">
+      <span style="width: {{ album.percent }}%"></span>
+    </div>
+  </div>
+</section>
+
+<section class="group-grid" aria-label="Grupos de figurinhas">
+  {% for group in album.sections %}
+    <article class="group-card" data-color="{{ group.cor }}">
+      <header class="group-header">
+        <div>
+          <span class="group-kicker">Grupo</span>
+          <h2>{{ group.grupo }}</h2>
+        </div>
+        <div class="group-summary">
+          <strong>{{ group.completed }}/{{ group.total }}</strong>
+          <span>{{ group.percent }}%</span>
+        </div>
+      </header>
+      <div class="team-list">
+        {% for team in group.teams %}
+          <a class="team-row team-link" href="{{ url_for('auth.sticker_selection', selection_sigla=team.href) }}">
+            <div class="team-code">{{ team.sigla }}</div>
+            <div class="team-main">
+              <div class="team-title">
+                <span>{{ team.nome }}</span>
+                <strong>{{ team.completed }}/{{ team.total }} {{ team.percent }}%</strong>
+              </div>
+              <div class="progress-track progress-small">
+                <span style="width: {{ team.percent }}%"></span>
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </article>
+  {% endfor %}
 </section>
 {% endblock %}

@@ -85,3 +85,19 @@ class PasswordResetToken(db.Model):
     def is_valid(self):
         expires_at = as_utc(self.expires_at)
         return self.used_at is None and expires_at is not None and expires_at > utcnow()
+
+
+class UserSticker(db.Model):
+    __tablename__ = "user_stickers"
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "code", name="uq_user_stickers_user_code"),
+    )
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    code = db.Column(db.String(16), nullable=False, index=True)
+    is_collected = db.Column(db.Boolean, nullable=False, default=False)
+    created_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow)
+    updated_at = db.Column(db.DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)
+
+    user = db.relationship("User", backref=db.backref("stickers", lazy=True, cascade="all, delete-orphan"))
