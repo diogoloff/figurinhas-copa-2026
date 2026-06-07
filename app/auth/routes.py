@@ -159,6 +159,18 @@ def compact_sticker_list():
     return render_template("compact_sticker_list.html", compact_list=compact_list)
 
 
+@auth_bp.get("/figurinhas/resumo/imprimir")
+@login_required
+def print_compact_sticker_list():
+    collected_codes = {
+        sticker.code
+        for sticker in UserSticker.query.filter_by(user_id=current_user.id, is_collected=True).all()
+    }
+    mode = "collected" if request.args.get("modo") == "adquiridas" else "pending"
+    compact_list = build_compact_list_data(collected_codes, mode=mode, query="")
+    return render_template("print_compact_sticker_list.html", compact_list=compact_list)
+
+
 @auth_bp.post("/figurinhas/resumo/<sticker_code>/alternar")
 @login_required
 def toggle_sticker_from_list(sticker_code):

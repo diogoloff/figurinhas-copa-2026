@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ "Adquiridas" if compact_list.showing_collected else "Pendentes" }} - Figurinhas Copa 2026</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/print-summary.css') }}">
+</head>
+<body>
+  <main class="print-page">
+    <header class="print-header">
+      <div>
+        <strong>Figurinhas Copa 2026</strong>
+        <h1>{{ "ADQUIRIDAS" if compact_list.showing_collected else "PENDENTES" }}</h1>
+      </div>
+      <span>{{ compact_list.total_visible }} figurinhas</span>
+    </header>
+
+    <section class="print-list" aria-label="Lista para impressao">
+      {% for section in compact_list.sections %}
+        <article class="print-section">
+          <h2>{{ section.sigla }} - {{ section.nome }}</h2>
+          <div class="print-stickers">
+            {% for sticker in section.stickers %}
+              <span>{{ sticker.number }}</span>
+            {% endfor %}
+          </div>
+        </article>
+      {% endfor %}
+    </section>
+  </main>
+  <script src="{{ url_for('static', filename='js/print-summary.js') }}" defer></script>
+</body>
+</html>

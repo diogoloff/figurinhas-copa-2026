@@ -40,6 +40,14 @@
       <a class="{% if not compact_list.showing_collected %}is-active{% endif %}" href="{{ url_for('auth.compact_sticker_list', q=compact_list.query or None) }}">Pendentes</a>
       <a class="{% if compact_list.showing_collected %}is-active{% endif %}" href="{{ url_for('auth.compact_sticker_list', modo='adquiridas', q=compact_list.query or None) }}">Adquiridas</a>
     </div>
+    <a
+      class="button button-secondary compact-print-button"
+      href="{{ url_for('auth.print_compact_sticker_list', modo='adquiridas' if compact_list.showing_collected else None) }}"
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Imprimir
+    </a>
   </section>
 
   {% if compact_list.query %}
