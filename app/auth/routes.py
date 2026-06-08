@@ -55,6 +55,7 @@ def login():
         if user and user.check_password(form.password.data):
             user.clear_login_failures()
             db.session.commit()
+            session.clear()
             session.permanent = True
             login_user(user, remember=form.remember.data)
             next_url = safe_redirect_target(request.args.get("next"))
@@ -85,6 +86,8 @@ def register():
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
+        session.clear()
+        session.permanent = True
         login_user(user)
         flash("Cadastro criado com sucesso.", "success")
         return redirect(url_for("auth.dashboard"))
@@ -309,5 +312,6 @@ def toggle_sticker(selection_sigla, sticker_code):
 @login_required
 def logout():
     logout_user()
+    session.clear()
     flash("Você saiu do sistema.", "info")
     return redirect(url_for("auth.home"))
