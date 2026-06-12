@@ -34,6 +34,17 @@
     list.replaceWith(emptyState);
   }
 
+  function redirectToLogin(response) {
+    return response.json()
+      .catch(function () {
+        return {};
+      })
+      .then(function (data) {
+        window.location.assign(data.loginUrl || "/login");
+        throw new Error("session-expired");
+      });
+  }
+
   document.addEventListener("submit", function (event) {
     var form = event.target;
 
@@ -61,6 +72,9 @@
       credentials: "same-origin"
     })
       .then(function (response) {
+        if (response.status === 401) {
+          return redirectToLogin(response);
+        }
         if (!response.ok) {
           throw new Error("Nao foi possivel atualizar a figurinha.");
         }
@@ -76,7 +90,10 @@
         updateTotal(data.compactList.totalVisible);
         showEmptyState(data.compactList);
       })
-      .catch(function () {
+      .catch(function (error) {
+        if (error && error.message === "session-expired") {
+          return;
+        }
         form.submit();
       })
       .finally(function () {

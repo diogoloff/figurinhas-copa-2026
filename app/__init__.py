@@ -1,7 +1,9 @@
 import re
 
 import click
-from flask import Flask
+from flask import Flask, flash, jsonify, redirect, request, session, url_for
+from flask_login import current_user
+from flask_wtf.csrf import CSRFError
 from sqlalchemy import text
 from sqlalchemy.engine import make_url
 from sqlalchemy.exc import SQLAlchemyError
@@ -37,6 +39,33 @@ def create_app(config_class=Config):
     login_manager.login_view = "auth.login"
     login_manager.login_message = "Entre com seu email e senha para acessar o sistema."
     login_manager.login_message_category = "info"
+
+    def login_redirect_url():
+        return url_for("auth.login", next=request.full_path.rstrip("?"))
+
+    @login_manager.unauthorized_handler
+    def handle_unauthorized():
+        session.clear()
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return jsonify({"error": "Sessao expirada.", "loginUrl": login_redirect_url()}), 401
+        flash("Sua sessao expirou. Entre novamente para continuar.", "info")
+        return redirect(login_redirect_url(), code=303)
+
+    @app.errorhandler(CSRFError)
+    def handle_csrf_error(error):
+        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+            return jsonify({"error": "Sessao expirada.", "loginUrl": login_redirect_url()}), 401
+
+        if current_user.is_authenticated:
+            flash("Sua sessao foi atualizada. Continue usando o sistema normalmente.", "info")
+            return redirect(url_for("auth.dashboard"), code=303)
+
+        retry_url = request.full_path.rstrip("?")
+        session.clear()
+        flash("Sua sessao expirou. Entre novamente para continuar.", "info")
+        if request.endpoint in {"auth.login", "auth.register", "auth.forgot_password", "auth.reset_password"}:
+            return redirect(retry_url, code=303)
+        return redirect(url_for("auth.login"), code=303)
 
     @app.after_request
     def add_security_headers(response):
